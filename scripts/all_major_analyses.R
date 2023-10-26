@@ -174,6 +174,9 @@ ggplot() +
   theme(panel.grid = element_blank(), plot.background = element_blank(), panel.background = element_blank(), strip.text = element_text(size=11))
 
 ############## adaptive index predictions ###################
+# download the WorldClim 1.4 bioclimatic dataset at 2.5 AS resolution
+# at <https://biogeo.ucdavis.edu/data/climate/worldclim/1_4/grid/cur/bio_2-5m_esri.zip>
+# and save it to the data directory
 efl<-list.files("./data/wc1.4",pattern = ".tif",full.names = T)
 en<-stack(efl)
 names(en)<-colnames(Variables)
@@ -272,34 +275,6 @@ points(pnt_eq,col=c(3,4)[factor(Env.t$Species)],pch=4,cex=.7)
 ############# clustering based on adaptively enriched RDA space #########
 library(terra)
 library(factoextra)
-# aes<-rast("/Users/piyalkarunarathne/Desktop/UPPSALA/RUS_CLIN/out/RDA/Sept22/PA_RDDA_finObj_14Sept.22.tif")
-# zones<-vect("/Users/piyalkarunarathne/Desktop/UPPSALA/RUS_CLIN/out/maps/PAandPO_combined_map.shp")
-# env<-read.table("/Users/piyalkarunarathne/Desktop/UPPSALA/RUS_CLIN/data/NewFromJay/env.data.chelsa.6.Sept.22.txt",h=T)
-# wm<-vect("/Users/piyalkarunarathne/Desktop/UPPSALA/Data/maps/ne_10m_land/ne_10m_land.shp")
-# rng<-ext(-10,100,35,90)
-# wm2<-crop(wm,rng)
-# 
-# # 1. only environment based ##
-# ev1<-scale(env[,-c(1:5)])
-# ccr<-cor(ev1)
-# diag(ccr)<-0
-# thr<-range(abs(ccr))[2]
-# while(thr>0.5){
-#   ccr<-cor(ev1)
-#   diag(ccr)<-0
-#   thr<-range(abs(ccr))[2]
-#   ev1<-ev1[,-(which.max(colSums(abs(ccr))))]
-# }
-# lyrs<-colnames(ev1)
-# s.env<-ev1[,lyrs]
-# row.names(s.env)<-env$Source
-# km<-kmeans(s.env,centers = 6)
-# cl2<-hcl.colors(n=10,palette = "red-blue")
-# rng<-ext(-10,100,35,90)
-# plot(wm,col="grey",border=F,ext=rng,axes=F)
-# plot(aes,legend=F,col=rev(cl2),add=T,ext=rng,axes=F)
-# points(env[,c("Long","Lat")],pch=19,cex=.8,col=km$cluster)
-# text(env[,c("Long","Lat")],labels=env$Source,cex=.7,adj=c(1,0))
 
 # 2. Adaptively enriched space based
 # change coordinates of DE1 (falls outside of the range)
@@ -341,7 +316,6 @@ text(env[,c("Long","Lat")],labels=env$Source,cex=.6,adj=c(1,0))
 saveRDS(list(nonhyb=km2,hyb=km3),"./output/kmeans_clustering.rds")
 
 # plotting
-
 km<-readRDS("./output/kmeans_clustering.rds")
 km2<-km$nonhyb
 km3<-km$hyb
@@ -727,15 +701,8 @@ plot(po.ig,legend=F,main="P.ovovata Int.Glac",axes=F)
 # -------------- RONA calculation --------------------------
 #on MilesiServer
 gen<-readRDS("./data/allele.freq_pop_Sept6_22.rds")
-# efl<-list.files("/home/pkaru/PIYAL/myDat/envdat/wc1.4/curr/tif",pattern = ".bil",full.names = T)
-# crd<-read.table("/home/pkaru/PIYAL/myDat/RusClin/niche/coords_w_hyb_and_gbif_oct28.txt",h=T)
-# pres<-crd[crd$Source!="gbif",]
-# env<-stack(efl)
-# names(env)<-paste0("Bio",1:19)
-# env<-data.frame(pres,extract(env,pres[,1:2]))
-#write.table(env,"/home/pkaru/PIYAL/myDat/envdat/wc1.4/curr/env_wc_noGbif.txt",row.names=F, quote=F, sep="\t")
-env<-read.table("./data/wc1.4/curr/env_wc_noGbif.txt",h=T)
-fu<-read.table("./data/wc1.4/futur/future_env.txt",h=T)
+env<-read.table("./data/env_wc_noGbif.txt",h=T)
+fu<-read.table("./data/future_env.txt",h=T)
 env<-env[match(env$Source,colnames(gen)),]
 fu<-fu[match(fu$Source,colnames(gen)),]
 
@@ -792,12 +759,12 @@ close(pb)
 names(evlist)<-colnames(present)
 
 saveRDS(evlist,paste0("./output/RONA_out_",substr(Sys.time(),1,10),".rds"))
-#saveRDS(evlist,"/Users/piyalkarunarathne/Desktop/UPPSALA/RUS_CLIN/out/offset/RONA/RONA_Bio2.rds")
+#saveRDS(evlist,"output/RONA_Bio2.rds")
 
 ######### check locally ######
 rona<-readRDS("./output/RONA/RONA_out.rds")
 # # the new one with coefficients from sept23
-# rona<-readRDS("/Users/piyalkaru/Desktop/UPP/RUS_CLIN/out/offset/RONA/sept23/RONA_out_2023-09-11.rds")
+# rona<-readRDS("output/RONA_out_2023-09-11.rds")
 
 for(i in seq_along(rona)){
   tmp1<-rona[[i]]$RONA
@@ -810,32 +777,21 @@ for(i in seq_along(rona)){
   unweighted<-colMeans(top.rona)
   se<-apply(top.rona,2,function(x){sd(x)/sqrt(length(x))})
   top.avg.rona<-data.frame(weighted,unweighted,se)
-  write.table(top.avg.rona,paste0("/Users/piyalkaru/Desktop/UPP/RUS_CLIN/out/offset/RONA/sept23/","top.avg.RONA",substr(Sys.time(),1,10),".",names(rona)[i],".txt"),quote=F,sep="\t")
+  write.table(top.avg.rona,paste0("output/","top.avg.RONA",substr(Sys.time(),1,10),".",names(rona)[i],".txt"),quote=F,sep="\t")
   
-  # plot(0,xlim=c(1,nrow(top.avg.rona)),ylim=range(top.avg.rona),type="n",xaxt="n",xlab="Populations",ylab="Weighted RONA",
-  #      main=paste0("Risk of Nonadaptiveness ",names(rona)[i]))
-  # axis(1,at=1:length(se),labels = rownames(top.avg.rona),las=2)
-  # points(top.avg.rona$weighted,pch=19,cex=.7)
-  # #points(top.avg.rona$unweighted,cex=.7)
-  # arrows(x0=1:length(se),y0=top.avg.rona$weighted,y1=top.avg.rona$weighted+se,angle=90,length = .1,col=2)
-  # arrows(x0=1:length(se),y0=top.avg.rona$weighted,y1=top.avg.rona$weighted-se,angle=90,length = .1,col=2)
-  # 
 }
 
 #### Partial response plots of top two alleles ####
 # need coefficients from all lms and find the top outlier allels and get the partial response.
 
 # the new one with coefficients from sept23
-rona<-readRDS("/Users/piyalkaru/Desktop/UPP/RUS_CLIN/out/offset/RONA/sept23/RONA_out_2023-09-11.rds")
-gen<-readRDS("/Users/piyalkaru/Desktop/UPP/RUS_CLIN/data/NewFromJay/allele.freq_pop_Sept6_22.rds")
-env<-read.table("/Users/piyalkaru/Desktop/UPP/RUS_CLIN/data/NewFromJay/env_wc_noGbif.txt",h=T)
+rona<-readRDS("output/RONA_out_2023-09-11.rds")
+gen<-readRDS("data/allele.freq_pop_Sept6_22.rds")
+env<-read.table("data/env_wc_noGbif.txt",h=T)
 env<-env[match(env$Source,colnames(gen)),]
 lyrs<-c("Bio8" , "Bio9" , "Bio18")
 present<-env[,lyrs]
-# tt<-rona$Bio18
-# stats<-tt$stats[order(tt$stats$coef, decreasing = T),]
 # get the top 10 loci for each variable, do lm on the allele frequency and plot the response curve
-
 set.seed(999)
 mls_bio<-list()
 #for(i in seq_along(rona)){
@@ -1048,12 +1004,6 @@ for(fl in fls){
   plot(epr.eq,col=cl1,legend=T,add=T,axes=F)
 }
 
-# raster_extent<-ext(epr.eq)
-# # Customize x-axis labels
-# axis(1, at = seq(-1035107, 9669015, by = 2000000), labels = F)#format(seq(-2035107, 8669015, by = 1000000),scientific = T,digits = 2)
-# # Customize y-axis labels
-# axis(2, at = seq(0, maxY(raster_data), by = 100000), labels = format(seq(0, maxY(raster_data), by = 100000), scientific = FALSE))
-
 
 ######################### Pi  ###########################
 library(terra)
@@ -1108,10 +1058,6 @@ pr<-rast_index(pi,resolution = .25,extent=20)
 wo<-dup_mean(pr,pi)
 pr2<-rast_index(wo,resolution = .25,extent=20)
 
-# cl<-hcl.colors(52,"Blue-Red 2")
-# plot(wm,border=NA,col="grey95",ext=ext(pr2))
-# plot(pr2,add=T,legend=F,col=cl)
-#plot(papo,border="grey80",add=T)
 
 ### interpolate (fill gaps) with nearest neighbor sliding window ######
 mt<-matrix(values(pr2),nrow = dim(pr2)[1],ncol = dim(pr2)[2],byrow = T)
