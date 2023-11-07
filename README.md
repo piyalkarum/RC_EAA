@@ -1,5 +1,5 @@
 # Hybridization mediated range expansion and climate change resilience in two keystone tree species in boreal forests
-**Piyal Karunarathne, Qiujie Zhou, Martin Lascoux, Pascal Milesi **
+**Piyal Karunarathne, Qiujie Zhou, Martin Lascoux, Pascal Milesi**
 
 This repository contains all the scripts and data of the downstream analyses in
 the paper titled "Hybridization mediated range expansion and climate change 
