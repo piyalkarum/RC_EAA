@@ -28,7 +28,6 @@ species and may allow both species to cope better with changing future climates.
 Finally, this allowed us to identify genetically isolated populations at risk 
 under current climate change.
 
-* Please don't forget to cite us if you use any resources listed here.
-* Feel free to contact us if you have any comments, suggestions, or issues 
-pertaining to this analysis.
+- Please don't forget to cite us if you use any resources listed here.
+- Feel free to contact us if you have any comments, suggestions, or issues pertaining to this analysis.
 
