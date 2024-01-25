@@ -1,0 +1,72 @@
+---
+title: "Map Extrapolation"
+author: "Karunarathne_et_al"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Spatial interpolation to estimate genetic diversity (pi)hybrid index (hi) for the areas where data points aren't available based on the known values in neighboring locations. The nearest neighbor extrapolation technique can be mathematically represented as follows:
+
+Let \( P \) be the matrix representing genetic diversity (pi)/hybrid index (hi) values for different locations. The matrix contains both known values (where genetic diversity is observed) and unknown values (to be estimated or extrapolated).
+
+The basic nearest neighbor extrapolation formula for estimating the genetic diversity at an unknown location (cell) \((i, j)\) in a matrix is:
+
+\[ P_{i,j} = \frac{{\sum_{k,l \in N_{i,j}} P_{k,l}}}{{n_{N_{i,j}}}} \]
+
+Where:
+- \( P_{i,j} \) is the estimated genetic diversity at the unknown location \((i, j)\).
+- \( P_{k,l} \) represents the observed genetic diversity at the neighboring locations \((k, l)\) within a defined neighborhood \( N_{i,j} \).
+- \( n_{N_{i,j}} \) is the number of observed neighboring locations within the defined neighborhood \( N_{i,j} \).
+
+This formula essentially calculates the estimated genetic diversity at a specific location by taking the mean (or average) of the known genetic diversity values observed in the nearby locations within a defined neighborhood.
+
+The neighborhood \( N_{i,j} \) could be defined using a distance metric (such as Euclidean distance) or based on a specified width or radius from the unknown location \((i, j)\) to include neighboring known locations.
+
+In this script, you're iterating through the matrix and calculating the mean values of neighboring cells (both horizontally and vertically) within a specified width to estimate the missing values. This aligns with the concept of nearest neighbor extrapolation, where you're using nearby observed genetic diversity values to estimate the missing values at unknown locations.
+
+Incorporating Euclidean distance to define the neighborhood \( N_{i,j} \) for nearest neighbor extrapolation involves considering a specific radius or distance from the unknown location \((i, j)\) within which neighboring known locations are selected for calculating the estimated value.
+
+Here's an example of how you might incorporate Euclidean distance to define the neighborhood:
+
+1. **Define a Radius or Distance Threshold:**
+   Choose a radius or distance threshold within which neighboring known locations will be considered for estimating the missing value. This threshold could be based on the distance between points or the number of nearest neighbors.
+
+2. **Calculate Euclidean Distance:**
+   Calculate the Euclidean distance between the unknown location \((i, j)\) and all other known locations. This distance calculation determines which points fall within the defined radius.
+
+3. **Select Neighboring Points:**
+   Identify the points that fall within the defined radius from the unknown location \((i, j)\). These points will constitute the neighborhood \( N_{i,j} \) for estimating the missing value.
+
+4. **Calculate Estimated Value:**
+   Compute the estimated value at the unknown location \((i, j)\) by taking the mean (or other suitable aggregation) of the observed values in the identified neighborhood \( N_{i,j} \).
+
+Here's a basic outline of incorporating Euclidean distance:
+
+```R
+# Assuming 'P' is the matrix containing genetic diversity values
+# 'radius' is the radius or distance threshold for defining the neighborhood
+
+for (i in 1:nrow(P)) {
+  for (j in 1:ncol(P)) {
+    if (is.na(P[i, j])) {
+      # Calculate Euclidean distance between the unknown point (i, j) and all other known points
+      distances <- sqrt((row_indices - i)^2 + (col_indices - j)^2)  # Calculate distances for all points
+      
+      # Identify points within the defined radius
+      neighbors_indices <- which(distances <= radius & !is.na(P), arr.ind = TRUE)
+      
+      if (length(neighbors_indices) > 0) {
+        # Calculate estimated value based on observed neighbors within the defined radius
+        P[i, j] <- mean(P[neighbors_indices], na.rm = TRUE)
+      }
+    }
+  }
+}
+```
+
+This code calculates the Euclidean distance between the unknown point and all other points in the matrix, identifies the points within the defined radius, and estimates the missing value based on the observed values within that radius. Adjust the radius parameter based on your specific requirements and the spatial distribution of your data.
+
